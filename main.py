@@ -55,10 +55,13 @@ def get_latest_release(artist_id):
 def post_discord(artist, release):
     message = {
         "content": (
-    f"<@&{1467725657176805458}> 🚨 **NEUER SPOTIFY RELEASE** 🚨\n\n"
-    f"🎵 **{artist} – {release.get('name','Neuer Track')}**\n"
-    f"▶ {release.get('shareUrl','https://open.spotify.com')}"
-)
+            f"<@&{PING_ROLE_ID}> 🚨 **NEUER SPOTIFY RELEASE** 🚨\n\n"
+            f"🎵 **{artist} – {release.get('name','Neuer Track')}**\n"
+            f"▶ {release.get('shareUrl','https://open.spotify.com')}"
+        )
+    }
+    requests.post(DISCORD_WEBHOOK_URL, json=message)
+
 
     }
     requests.post(DISCORD_WEBHOOK_URL, json=message)
