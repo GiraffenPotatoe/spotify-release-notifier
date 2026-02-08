@@ -1,12 +1,14 @@
-import requests
-requests.post(
-    os.environ["DISCORD_WEBHOOK_URL"],
-    json={"content": "✅ Testnachricht: Webhook & GitHub laufen"}
-)
+
 import requests
 import json
 import os
 from datetime import datetime
+
+requests.post(
+    os.environ["DISCORD_WEBHOOK_URL"],
+    json={"content": "✅ Testnachricht: Webhook & GitHub laufen"}
+)
+
 
 DISCORD_WEBHOOK_URL = os.environ["DISCORD_WEBHOOK_URL"]
 
