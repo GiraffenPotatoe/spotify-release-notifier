@@ -1,37 +1,84 @@
-import os
 import requests
-import time
+import json
+import os
+from datetime import datetime
 
-SPOTIFY_CLIENT_ID = os.environ["SPOTIFY_CLIENT_ID"]
-SPOTIFY_CLIENT_SECRET = os.environ["SPOTIFY_CLIENT_SECRET"]
 DISCORD_WEBHOOK_URL = os.environ["DISCORD_WEBHOOK_URL"]
 
-ARTISTS = [
-    "SPOTIFY_ARTIST_ID_1",
-    "SPOTIFY_ARTIST_ID_2"
-]
+# 🔧 HIER DEINE ARTISTS (Spotify Artist IDs)
+ARTISTS = {
+    "1Xyo4u8uXC1ZmMpatF05PJ": "The Weeknd",
+    "66CXWjxzNUsdJxJ2JdwvnR": "Ariana Grande",
+    "06HL4z0CvFAxyc27GXpf02": "Taylor Swift"
+}
 
-def get_token():
-    r = requests.post(
-        "https://accounts.spotify.com/api/token",
-        data={"grant_type": "client_credentials"},
-        auth=(SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET),
-    )
-    return r.json()["access_token"]
+STATE_FILE = "posted.json"
 
-def check_releases():
-    token = get_token()
-    headers = {"Authorization": f"Bearer {token}"}
 
-    for artist in ARTISTS:
-        url = f"https://api.spotify.com/v1/artists/{artist}/albums?include_groups=single,album&limit=1"
-        r = requests.get(url, headers=headers).json()
+def load_state():
+    if os.path.exists(STATE_FILE):
+        with open(STATE_FILE, "r") as f:
+            return json.load(f)
+    return {}
 
-        if r.get("items"):
-            release = r["items"][0]
-            message = {
-                "content": f"@Releases 🚨 **NEUER SPOTIFY RELEASE** 🚨\n\n🎵 **{release['name']}**\n▶ {release['external_urls']['spotify']}"
-            }
-            requests.post(DISCORD_WEBHOOK_URL, json=message)
 
-check_releases()
+def save_state(state):
+    with open(STATE_FILE, "w") as f:
+        json.dump(state, f)
+
+
+def get_latest_release(artist_id):
+    url = f"https://open.spotify.com/artist/{artist_id}"
+    r = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
+
+    if r.status_code != 200:
+        return None
+
+    text = r.text
+    marker = '"latestRelease":'
+    if marker not in text:
+        return None
+
+    snippet = text.split(marker, 1)[1][:1000]
+
+    try:
+        data = json.loads("{" + snippet.split("}", 1)[0] + "}")
+        return data
+    except:
+        return None
+
+
+def post_discord(artist, release):
+    message = {
+        "content": (
+            f"@Releases 🚨 **NEUER SPOTIFY RELEASE** 🚨\n\n"
+            f"🎵 **{artist} – {release.get('name','Neuer Track')}**\n"
+            f"▶ {release.get('shareUrl','https://open.spotify.com')}"
+        )
+    }
+    requests.post(DISCORD_WEBHOOK_URL, json=message)
+
+
+def main():
+    state = load_state()
+
+    for artist_id, artist_name in ARTISTS.items():
+        release = get_latest_release(artist_id)
+        if not release:
+            continue
+
+        release_id = release.get("uri")
+        if not release_id:
+            continue
+
+        if state.get(artist_id) == release_id:
+            continue  # schon gepostet
+
+        post_discord(artist_name, release)
+        state[artist_id] = release_id
+
+    save_state(state)
+
+
+if __name__ == "__main__":
+    main()
