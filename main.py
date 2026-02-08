@@ -87,3 +87,9 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+requests.post(
+    DISCORD_WEBHOOK_URL,
+    json={"content": f"<@&{PING_ROLE_ID}> 🔔 **PING-ROLLEN-TEST**"}
+)
+
