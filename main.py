@@ -8,9 +8,9 @@ DISCORD_WEBHOOK_URL = os.environ["DISCORD_WEBHOOK_URL"]
 
 # 🔧 HIER DEINE ARTISTS (Spotify Artist IDs)
 ARTISTS = {
-    "1Xyo4u8uXC1ZmMpatF05PJ": "The Weeknd",
-    "66CXWjxzNUsdJxJ2JdwvnR": "Ariana Grande",
-    "06HL4z0CvFAxyc27GXpf02": "Taylor Swift"
+    "5APQG46BzoVM8gm7mBRRo7": "Duplexcopy",
+    "3Bu2yHzFWRIrtyAy8RnVRK": "CryXal",
+    
 }
 
 STATE_FILE = "posted.json"
